@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "860878388510",
+    "project_id": "learning-firebase-bddb1",
+    "storage_bucket": "learning-firebase-bddb1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:860878388510:android:d8f2a00fc2abdd6240dd0f",
+        "android_client_info": {
+          "package_name": "com.example.my_style_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMJqiCLP_H3rcUHSTySCCAsX0qP1m2qeA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:860878388510:android:8383171cd26f66b940dd0f",
+        "android_client_info": {
+          "package_name": "com.example.virtual_closet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMJqiCLP_H3rcUHSTySCCAsX0qP1m2qeA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:860878388510:android:4f74e787d240bc7840dd0f",
+        "android_client_info": {
+          "package_name": "com.virtualcloset.vc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMJqiCLP_H3rcUHSTySCCAsX0qP1m2qeA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
