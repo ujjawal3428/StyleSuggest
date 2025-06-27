@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'dart:math' as math;
 
 class ColorPaletteScreen extends StatefulWidget {
   const ColorPaletteScreen({super.key});
@@ -15,6 +16,7 @@ class ColorPaletteScreen extends StatefulWidget {
 class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
   Color _selectedColor = Colors.blue;
   List<List<Color>> _colorPalettes = [];
+  List<String> _paletteTypes = [];
 
   @override
   void initState() {
@@ -30,6 +32,10 @@ class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
       [Color(0xFFBF616A), Color(0xFFD08770), Color(0xFFEBCB8B), Color(0xFFA3BE8C)], // Vibrant
       [Color(0xFFECEFF4), Color(0xFFE5E9F0), Color(0xFFD8DEE9), Color(0xFF4C566A)], // Light
       [Color(0xFF5D4E75), Color(0xFF7B68EE), Color(0xFF9370DB), Color(0xFFBA55D3)], // Purple
+    ];
+    
+    _paletteTypes = [
+      'Dark Elegance', 'Warm Earth', 'Cool Ocean', 'Vibrant Sunset', 'Minimal Light', 'Royal Purple'
     ];
   }
 
@@ -136,7 +142,7 @@ class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
                       style: GoogleFonts.poppins(fontSize: 14),
                     ),
                     Text(
-                      '#${_selectedColor.value.toRadixString(16).substring(2).toUpperCase()}',
+                      _colorToHex(_selectedColor),
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.grey[600],
@@ -145,12 +151,48 @@ class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
                   ],
                 ),
               ),
-              ElevatedButton(
-                onPressed: _generateFromColor,
-                child: Text('Generate'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF667eea),
-                  foregroundColor: Colors.white,
+              PopupMenuButton<String>(
+                onSelected: (String result) {
+                  _generateFromColor(result);
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'monochromatic',
+                    child: Text('Monochromatic'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'analogous',
+                    child: Text('Analogous'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'complementary',
+                    child: Text('Complementary'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'triadic',
+                    child: Text('Triadic'),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'tetradic',
+                    child: Text('Tetradic'),
+                  ),
+                ],
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF667eea),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Generate',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      Icon(Icons.arrow_drop_down, color: Colors.white),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -172,12 +214,22 @@ class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _getPaletteName(index),
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _getPaletteName(index),
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (index < _paletteTypes.length)
+                    IconButton(
+                      icon: Icon(Icons.delete_outline, color: Colors.grey[600]),
+                      onPressed: () => _deletePalette(index),
+                    ),
+                ],
               ),
               SizedBox(height: 10),
               Container(
@@ -193,25 +245,32 @@ class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
                   ],
                 ),
                 child: Row(
-                  children: _colorPalettes[index].map((color) {
+                  children: _colorPalettes[index].asMap().entries.map((entry) {
+                    int colorIndex = entry.key;
+                    Color color = entry.value;
+                    bool isFirst = colorIndex == 0;
+                    bool isLast = colorIndex == _colorPalettes[index].length - 1;
+                    
                     return Expanded(
                       child: GestureDetector(
                         onTap: () => _showColorDetails(color),
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 3.0, right: 3.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: color,
-                              borderRadius: BorderRadius.circular(15),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.only(
+                              topLeft: isFirst ? Radius.circular(15) : Radius.zero,
+                              bottomLeft: isFirst ? Radius.circular(15) : Radius.zero,
+                              topRight: isLast ? Radius.circular(15) : Radius.zero,
+                              bottomRight: isLast ? Radius.circular(15) : Radius.zero,
                             ),
-                            child: Center(
-                              child: Text(
-                                '#${color.value.toRadixString(16).substring(2).toUpperCase()}',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10,
-                                  color: _getContrastColor(color),
-                                  fontWeight: FontWeight.w500,
-                                ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              _colorToHex(color),
+                              style: GoogleFonts.poppins(
+                                fontSize: 10,
+                                color: _getContrastColor(color),
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
@@ -229,8 +288,14 @@ class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
   }
 
   String _getPaletteName(int index) {
-    const names = ['Dark Elegance', 'Warm Earth', 'Cool Ocean', 'Vibrant Sunset', 'Minimal Light', 'Royal Purple'];
-    return names[index];
+    if (index < _paletteTypes.length) {
+      return _paletteTypes[index];
+    }
+    return 'Generated Palette ${index - _paletteTypes.length + 1}';
+  }
+
+  String _colorToHex(Color color) {
+    return '#${color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
   }
 
   Color _getContrastColor(Color color) {
@@ -264,27 +329,104 @@ class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
     );
   }
 
-  void _generateFromColor() {
-    // Generate complementary colors
+  void _generateFromColor(String paletteType) {
     List<Color> newPalette = [];
-    HSVColor hsv = HSVColor.fromColor(_selectedColor);
+    HSVColor baseHsv = HSVColor.fromColor(_selectedColor);
+    String paletteName = '';
     
-    newPalette.add(_selectedColor);
-    newPalette.add(hsv.withHue((hsv.hue + 30) % 360).toColor());
-    newPalette.add(hsv.withHue((hsv.hue + 180) % 360).toColor());
-    newPalette.add(hsv.withHue((hsv.hue + 210) % 360).toColor());
+    switch (paletteType) {
+      case 'monochromatic':
+        paletteName = 'Monochromatic';
+        newPalette = _generateMonochromatic(baseHsv);
+        break;
+      case 'analogous':
+        paletteName = 'Analogous';
+        newPalette = _generateAnalogous(baseHsv);
+        break;
+      case 'complementary':
+        paletteName = 'Complementary';
+        newPalette = _generateComplementary(baseHsv);
+        break;
+      case 'triadic':
+        paletteName = 'Triadic';
+        newPalette = _generateTriadic(baseHsv);
+        break;
+      case 'tetradic':
+        paletteName = 'Tetradic';
+        newPalette = _generateTetradic(baseHsv);
+        break;
+    }
     
     setState(() {
       _colorPalettes.insert(0, newPalette);
+      _paletteTypes.insert(0, paletteName);
     });
   }
 
+  List<Color> _generateMonochromatic(HSVColor baseHsv) {
+    return [
+      baseHsv.withValue(math.max(0.2, baseHsv.value - 0.4)).toColor(),
+      baseHsv.withValue(math.max(0.3, baseHsv.value - 0.2)).toColor(),
+      baseHsv.toColor(),
+      baseHsv.withValue(math.min(1.0, baseHsv.value + 0.2)).toColor(),
+    ];
+  }
+
+  List<Color> _generateAnalogous(HSVColor baseHsv) {
+    return [
+      baseHsv.withHue((baseHsv.hue - 30) % 360).toColor(),
+      baseHsv.withHue((baseHsv.hue - 15) % 360).toColor(),
+      baseHsv.toColor(),
+      baseHsv.withHue((baseHsv.hue + 15) % 360).toColor(),
+    ];
+  }
+
+  List<Color> _generateComplementary(HSVColor baseHsv) {
+    double complementaryHue = (baseHsv.hue + 180) % 360;
+    return [
+      baseHsv.toColor(),
+      baseHsv.withSaturation(math.max(0.2, baseHsv.saturation - 0.3)).toColor(),
+      HSVColor.fromAHSV(1.0, complementaryHue, baseHsv.saturation, baseHsv.value).toColor(),
+      HSVColor.fromAHSV(1.0, complementaryHue, math.max(0.2, baseHsv.saturation - 0.3), baseHsv.value).toColor(),
+    ];
+  }
+
+  List<Color> _generateTriadic(HSVColor baseHsv) {
+    return [
+      baseHsv.toColor(),
+      baseHsv.withHue((baseHsv.hue + 120) % 360).toColor(),
+      baseHsv.withHue((baseHsv.hue + 240) % 360).toColor(),
+      baseHsv.withSaturation(math.max(0.3, baseHsv.saturation - 0.4)).withValue(math.min(1.0, baseHsv.value + 0.2)).toColor(),
+    ];
+  }
+
+  List<Color> _generateTetradic(HSVColor baseHsv) {
+    return [
+      baseHsv.toColor(),
+      baseHsv.withHue((baseHsv.hue + 90) % 360).toColor(),
+      baseHsv.withHue((baseHsv.hue + 180) % 360).toColor(),
+      baseHsv.withHue((baseHsv.hue + 270) % 360).toColor(),
+    ];
+  }
+
+  void _deletePalette(int index) {
+    if (index >= 6) { // Only allow deletion of generated palettes
+      setState(() {
+        _colorPalettes.removeAt(index);
+        if (index < _paletteTypes.length) {
+          _paletteTypes.removeAt(index);
+        }
+      });
+    }
+  }
+
   void _showColorDetails(Color color) {
+    HSVColor hsv = HSVColor.fromColor(color);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: 300,
+        height: 350,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -323,14 +465,59 @@ class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
                 ),
               ),
               SizedBox(height: 15),
-              _buildColorInfo('HEX', '#${color.value.toRadixString(16).substring(2).toUpperCase()}'),
+              _buildColorInfo('HEX', _colorToHex(color)),
               _buildColorInfo('RGB', '${color.red}, ${color.green}, ${color.blue}'),
-              _buildColorInfo('HSV', '${HSVColor.fromColor(color).hue.round()}°, ${(HSVColor.fromColor(color).saturation * 100).round()}%, ${(HSVColor.fromColor(color).value * 100).round()}%'),
+              _buildColorInfo('HSV', '${hsv.hue.round()}°, ${(hsv.saturation * 100).round()}%, ${(hsv.value * 100).round()}%'),
+              _buildColorInfo('HSL', _getHSL(color)),
+              SizedBox(height: 15),
+              ElevatedButton.icon(
+                onPressed: () {
+                  // Copy color to clipboard functionality can be added here
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Color ${_colorToHex(color)} copied!')),
+                  );
+                },
+                icon: Icon(Icons.copy),
+                label: Text('Copy HEX'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF667eea),
+                  foregroundColor: Colors.white,
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  String _getHSL(Color color) {
+    double r = color.red / 255;
+    double g = color.green / 255;
+    double b = color.blue / 255;
+    
+    double max = math.max(r, math.max(g, b));
+    double min = math.min(r, math.min(g, b));
+    
+    double h = 0, s = 0, l = (max + min) / 2;
+    
+    if (max == min) {
+      h = s = 0; // achromatic
+    } else {
+      double d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      
+      if (max == r) {
+        h = (g - b) / d + (g < b ? 6 : 0);
+      } else if (max == g) {
+        h = (b - r) / d + 2;
+      } else if (max == b) {
+        h = (r - g) / d + 4;
+      }
+      h /= 6;
+    }
+    
+    return '${(h * 360).round()}°, ${(s * 100).round()}%, ${(l * 100).round()}%';
   }
 
   Widget _buildColorInfo(String label, String value) {

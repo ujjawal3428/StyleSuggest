@@ -1,3 +1,4 @@
+// camera_screen.dart
 // ignore_for_file: library_private_types_in_public_api, avoid_print, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
@@ -193,15 +194,16 @@ class _CameraScreenState extends State<CameraScreen> {
   void _flipCamera() async {
     if (cameras != null && cameras!.length > 1) {
       await _controller?.dispose();
-      
-      // Toggle between front and back camera
-      final newCamera = _controller?.description == cameras![0] 
-          ? cameras![1] 
+
+      final newCamera = _controller?.description == cameras![0]
+          ? cameras![1]
           : cameras![0];
-      
+
       _controller = CameraController(newCamera, ResolutionPreset.high);
       await _controller!.initialize();
-      setState(() {});
+      setState(() {
+        _isCameraInitialized = true;
+      });
     }
   }
 }
